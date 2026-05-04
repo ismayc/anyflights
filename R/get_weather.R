@@ -10,9 +10,10 @@
 #' 
 #' @return A data frame with ~1k-25k rows and 15 variables:
 #' \describe{
-#' \item{\code{origin}}{Weather station. Named \code{origin} to facilitate 
+#' \item{\code{origin}}{Weather station. Named \code{origin} to facilitate
 #'   merging with flights data}
-#' \item{\code{year, month, day, hour}}{Time of recording, UTC}
+#' \item{\code{year, month, day, hour}}{Time of recording in the airport's
+#'   local time zone.}
 #' \item{\code{temp, dewp}}{Temperature and dewpoint in F}
 #' \item{\code{humid}}{Relative humidity}
 #' \item{\code{wind_dir, wind_speed, wind_gust}}{Wind direction (in degrees), 
@@ -20,8 +21,10 @@
 #' \item{\code{precip}}{Precipitation, in inches}
 #' \item{\code{pressure}}{Sea level pressure in millibars}
 #' \item{\code{visib}}{Visibility in miles}
-#' \item{\code{time_hour}}{Date and hour of the recording as a \code{POSIXct} 
-#'   date, UTC}
+#' \item{\code{time_hour}}{Date and hour of the recording as a \code{POSIXct}
+#'   date in the airport's local time zone (IANA \code{tzone} from
+#'   \code{\link{get_airports}}). Along with \code{origin}, can be used to
+#'   join weather data to flights data.}
 #' }
 #' @source ASOS download from Iowa Environmental Mesonet,
 #'   \url{https://mesonet.agron.iastate.edu/request/download.phtml}
@@ -66,14 +69,17 @@ get_weather <- function(station, year, month = 1:12, dir = NULL) {
     dir_is_null <- FALSE
   }
   
-  weather <- purrr::map(station, 
-                            get_weather_for_station, 
+  weather <- purrr::map(station,
+                            get_weather_for_station,
                             year = year,
-                            dir = dir, 
+                            dir = dir,
                             month_and_day_range = month_and_day_range,
                             month = month) %>%
     dplyr::bind_rows()
-  
+
+  # convert time_hour to each origin's local IANA time zone (#28)
+  weather <- adjust_time_hour_tz(weather, get_airports(), action = "convert")
+
   # save the data if the user supplied a directory
   if (!dir_is_null) {
     save(weather, file = paste0(dir, "/weather.rda"), compress = "xz")

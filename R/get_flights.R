@@ -34,9 +34,10 @@
 #'   \code{\link{get_airports}} for additional metadata.}
 #' \item{\code{air_time}}{Amount of time spent in the air, in minutes}
 #' \item{\code{distance}}{Distance between airports, in miles}
-#' \item{\code{time_hour}}{Scheduled date and hour of the flight as a 
-#'   \code{POSIXct} date. Along with \code{origin}, can be used to join 
-#'   flights data to weather data.}
+#' \item{\code{time_hour}}{Scheduled date and hour of the flight as a
+#'   \code{POSIXct} date in the airport's local time zone (IANA \code{tzone}
+#'   from \code{\link{get_airports}}). Along with \code{origin}, can be used
+#'   to join flights data to weather data.}
 #' }
 #' 
 #' @note
@@ -122,7 +123,10 @@ get_flights <- function(station, year, month = 1:12, dir = NULL, ...) {
                         station = station) %>%
     dplyr::bind_rows() %>%
     dplyr::arrange(year, month, day, dep_time)
-  
+
+  # tag time_hour with each origin's local IANA time zone (#28)
+  flights <- adjust_time_hour_tz(flights, get_airports(), action = "force")
+
   # get rid of the "raw" data
   unlink(x = flight_exdir, recursive = TRUE)
     

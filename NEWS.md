@@ -1,5 +1,12 @@
 # anyflights (development version)
 
+* `time_hour` in both `get_flights()` and `get_weather()` is now tagged with
+  each origin airport's local IANA time zone (looked up from
+  `get_airports()$tzone`), matching the convention used by `nycflights13`.
+  This makes the `(origin, time_hour)` join between flights and weather
+  return correct results across multiple time zones, where previously the
+  two columns disagreed for any non-UTC airport (#28, @ismayc).
+
 # anyflights 0.3.5
 
 * Include `tz = "GMT"` argument to `ISOdatetime()` so that weather output isn't 

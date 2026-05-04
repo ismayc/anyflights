@@ -45,9 +45,10 @@ A data frame with ~1k-500k rows and 19 variables:
   \code{\link{get_airports}} for additional metadata.}
 \item{\code{air_time}}{Amount of time spent in the air, in minutes}
 \item{\code{distance}}{Distance between airports, in miles}
-\item{\code{time_hour}}{Scheduled date and hour of the flight as a 
-  \code{POSIXct} date. Along with \code{origin}, can be used to join 
-  flights data to weather data.}
+\item{\code{time_hour}}{Scheduled date and hour of the flight as a
+  \code{POSIXct} date in the airport's local time zone (IANA \code{tzone}
+  from \code{\link{get_airports}}). Along with \code{origin}, can be used
+  to join flights data to weather data.}
 }
 }
 \description{

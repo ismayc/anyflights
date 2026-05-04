@@ -198,6 +198,42 @@ download_file_wrapper <- function(url, file_path, quiet = TRUE){
   out
 }
 
+# Adjust `time_hour` so it carries the airport's local IANA time zone, matching
+# nycflights13's convention. Flights data arrives with airport-local wall clocks
+# implicitly tagged as UTC, so `force_tz` keeps the wall clock and corrects the
+# instant. Weather data arrives with true-UTC instants, so `with_tz` preserves
+# the instant and shifts the wall clock to the airport's tz; we then recompute
+# year/month/day/hour from the converted time_hour. Both modes group by `tzone`
+# because lubridate's tz functions accept only one zone per call.
+adjust_time_hour_tz <- function(data, airports_data, action = c("force", "convert")) {
+  action <- match.arg(action)
+  data %>%
+    dplyr::left_join(
+      dplyr::select(airports_data, faa, tzone),
+      by = c("origin" = "faa")
+    ) %>%
+    dplyr::group_by(tzone) %>%
+    dplyr::group_modify(~ {
+      tz <- .y$tzone
+      if (is.na(tz)) return(.x)
+      if (action == "force") {
+        dplyr::mutate(.x, time_hour = lubridate::force_tz(time_hour, tzone = tz))
+      } else {
+        dplyr::mutate(
+          .x,
+          time_hour = lubridate::with_tz(time_hour, tzone = tz),
+          year = as.integer(lubridate::year(time_hour)),
+          month = as.integer(lubridate::month(time_hour)),
+          day = as.integer(lubridate::mday(time_hour)),
+          hour = as.integer(lubridate::hour(time_hour))
+        )
+      }
+    }) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-tzone)
+}
+
+
 # get_flights utilities --------------------------------------------------
 
 download_month <- function(year, month, dir, flight_exdir, pb, diff_fn) {

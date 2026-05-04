@@ -27,9 +27,10 @@ to save datasets in. By default, datasets will not be saved to file.}
 \value{
 A data frame with ~1k-25k rows and 15 variables:
 \describe{
-\item{\code{origin}}{Weather station. Named \code{origin} to facilitate 
+\item{\code{origin}}{Weather station. Named \code{origin} to facilitate
   merging with flights data}
-\item{\code{year, month, day, hour}}{Time of recording, UTC}
+\item{\code{year, month, day, hour}}{Time of recording in the airport's
+  local time zone.}
 \item{\code{temp, dewp}}{Temperature and dewpoint in F}
 \item{\code{humid}}{Relative humidity}
 \item{\code{wind_dir, wind_speed, wind_gust}}{Wind direction (in degrees), 
@@ -37,8 +38,10 @@ A data frame with ~1k-25k rows and 15 variables:
 \item{\code{precip}}{Precipitation, in inches}
 \item{\code{pressure}}{Sea level pressure in millibars}
 \item{\code{visib}}{Visibility in miles}
-\item{\code{time_hour}}{Date and hour of the recording as a \code{POSIXct} 
-  date, UTC}
+\item{\code{time_hour}}{Date and hour of the recording as a \code{POSIXct}
+  date in the airport's local time zone (IANA \code{tzone} from
+  \code{\link{get_airports}}). Along with \code{origin}, can be used to
+  join weather data to flights data.}
 }
 }
 \description{
